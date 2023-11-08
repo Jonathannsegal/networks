@@ -232,17 +232,21 @@ def main():
     event_ids = [input_event_id]
     if input_event_id == -1:
         event_ids = [*range(total_events)]
+    visited_events = set()
     for event_id in tqdm(event_ids):
         game = Game(path_to_json=path, event_index=event_id)
 
-        read_json(game)
+        hash_value = read_json(game)
+        if hash_value in visited_events:
+            continue
+        visited_events.add(hash_value)
         reformatted_dict = reformat_dict(game)
         last_possessors = determine_possessor(reformatted_dict, SPEED_THRESHOLD, RADIUS_THRESHOLD)
         if args.gif:
             draw_gif(reformatted_dict, event_id, game_name)
 
         passing_list = calculate_passing(reformatted_dict, last_possessors)
-        passing_list_list.append(passing_list)  # Assuming this is for further usage
+        passing_list_list.append({"passing":passing_list, "event_data": reformatted_dict})  # Assuming this is for further usage
 
     # Save the passing list as JSON
     if args.save_json:
