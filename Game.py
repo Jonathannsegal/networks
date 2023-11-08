@@ -17,7 +17,7 @@ class Game:
     def read_json(self):
         data_frame = pd.read_json(self.path_to_json)
         last_default_index = len(data_frame) - 1
-        self.event_index = min(self.event_index, last_default_index)
+        #self.event_index = min(self.event_index, last_default_index)
         index = self.event_index
 
         print(Constant.MESSAGE + str(last_default_index))

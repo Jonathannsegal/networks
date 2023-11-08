@@ -81,7 +81,7 @@ class Event:
                               fontsize=Constant.FONTSIZE,
                               cellLoc='center')
         table.scale(1, Constant.SCALE)
-        table_cells = table.properties()['child_artists']
+        table_cells = table.properties()['child_artists'] if "child_artists"  in table.properties() else []
         for cell in table_cells:
             cell._text.set_color('white')
 
@@ -101,3 +101,4 @@ class Event:
         plt.imshow(court, zorder=0, extent=[Constant.X_MIN, Constant.X_MAX - Constant.DIFF,
                                             Constant.Y_MAX, Constant.Y_MIN])
         plt.show()
+        anim.save("animation.mp4", "ffmpeg")
