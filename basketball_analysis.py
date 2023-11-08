@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import argparse
+import gzip
 import json
 
 import matplotlib.animation as animation
@@ -10,9 +11,9 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from Game import Game
 from Constant import *
 from Event import Event
+from Game import Game
 from Team import Team
 
 
@@ -59,7 +60,7 @@ def format_players_by_team(game, moments, team_name):
 
 
 def reformat_dict(game):
-    reformatted_dict = []
+    time_snapshots = []
     for moment in game.event.moments:
         moment_data = {
             "Ball": filter_ball_attributes(moment.ball),
@@ -69,8 +70,8 @@ def reformat_dict(game):
             "Quarter": moment.quarter,
             "ShotClock": moment.shot_clock
         }
-        reformatted_dict.append(moment_data)
-    return reformatted_dict
+        time_snapshots.append(moment_data)
+    return time_snapshots
 
 
 def get_speed(ball_1, ball_2):
@@ -124,15 +125,15 @@ RADIUS_THRESHOLD = 5
 from itertools import compress
 
 
-def draw_gif(reformatted_dict, event, game_name):
-    ball_data = list(compress(reformatted_dict,
+def draw_gif(time_snapshots, event, game_name):
+    ball_data = list(compress(time_snapshots,
                               ('x' in entry["Ball"] and 'y' in entry["Ball"] and 'radius' in entry["Ball"] for entry in
-                               reformatted_dict)))
+                               time_snapshots)))
     x_positions = [entry["Ball"]["x"] for entry in ball_data]
     y_positions = [entry["Ball"]["y"] for entry in ball_data]
     sizes = [entry["Ball"]["radius"] * scaling_factor for entry in ball_data]
 
-    last_possessors = determine_possessor(reformatted_dict, SPEED_THRESHOLD, RADIUS_THRESHOLD)
+    last_possessors = determine_possessor(time_snapshots, SPEED_THRESHOLD, RADIUS_THRESHOLD)
     progress_bar = tqdm(total=len(ball_data) + 1, desc="Rendering GIF", position=0, leave=True)
     fig, ax = initialize_plot()
 
@@ -180,11 +181,11 @@ def read_json(game):
     return h
 
 
-def calculate_passing(reformatted_dict, last_possessors):
+def calculate_passing(time_snapshots, last_possessors, game):
     passing_list = []
     current_pass = None
 
-    for idx in range(1, len(reformatted_dict)):
+    for idx in range(1, len(time_snapshots)):
         current_possessor = last_possessors[idx]
         previous_possessor = last_possessors[idx - 1]
 
@@ -192,35 +193,36 @@ def calculate_passing(reformatted_dict, last_possessors):
             # End of the current pass and start of a new pass
             if current_pass is not None:
                 # Calculate average speed
-                total_speed = sum([get_speed(ball_traj_i, ball_traj_j)
-                                   for ball_traj_i, ball_traj_j in zip(current_pass["trajectory"][:-1],
-                                                                       current_pass["trajectory"][1:])])
-                current_pass["average_speed"] = total_speed / len(current_pass["trajectory"]) - 1
+                total_speed = sum([get_speed(traj_i["Ball"], traj_j["Ball"])
+                                   for traj_i, traj_j in zip(current_pass["snapshots"][:-1],
+                                                             current_pass["snapshots"][1:])])
+                current_pass["average_speed"] = total_speed / len(current_pass["snapshots"]) - 1
                 # Calculate pass duration
-                start_time = reformatted_dict[idx - len(current_pass["trajectory"])]["GameClock"]
-                end_time = reformatted_dict[idx - 1]["GameClock"]
+                start_time = time_snapshots[idx - len(current_pass["snapshots"])]["GameClock"]
+                end_time = time_snapshots[idx - 1]["GameClock"]
                 current_pass["pass_duration"] = start_time - end_time
 
                 passing_list.append(current_pass)
 
             # Start a new pass
             current_pass = {
-                "pass_from": previous_possessor,
-                "pass_to": current_possessor,
-                "trajectory": [],
-                "GameClock": reformatted_dict[idx]["GameClock"],
-                "Quarter": reformatted_dict[idx]["Quarter"],
-                "ShotClock": reformatted_dict[idx]["ShotClock"],
+                "pass_from": game.event.player_ids_dict[previous_possessor][
+                    0] if previous_possessor else previous_possessor,
+                "pass_to": game.event.player_ids_dict[current_possessor][0] if current_possessor else current_possessor,
+                "snapshots": [],
+                "GameClock": time_snapshots[idx]["GameClock"],
+                "Quarter": time_snapshots[idx]["Quarter"],
+                "ShotClock": time_snapshots[idx]["ShotClock"],
                 "distance": 0  # This will be updated as trajectory is built
             }
 
         # Update the trajectory and distance of the current pass
         if current_pass is not None:
-            ball_now = reformatted_dict[idx]["Ball"]
-            if len(current_pass["trajectory"]) > 0:
-                ball_prev = current_pass["trajectory"][-1]
+            ball_now = time_snapshots[idx]["Ball"]
+            if len(current_pass["snapshots"]) > 0:
+                ball_prev = current_pass["snapshots"][-1]["Ball"]
                 current_pass["distance"] += get_speed(ball_prev, ball_now)
-            current_pass["trajectory"].append(ball_now)
+            current_pass["snapshots"].append(time_snapshots[idx])
 
     return passing_list
 
@@ -233,20 +235,23 @@ def main():
     if input_event_id == -1:
         event_ids = [*range(total_events)]
     visited_events = set()
-    for event_id in tqdm(event_ids):
+    for event_id in tqdm(event_ids, desc="Handling events"):
         game = Game(path_to_json=path, event_index=event_id)
-
         hash_value = read_json(game)
         if hash_value in visited_events:
             continue
         visited_events.add(hash_value)
-        reformatted_dict = reformat_dict(game)
-        last_possessors = determine_possessor(reformatted_dict, SPEED_THRESHOLD, RADIUS_THRESHOLD)
-        if args.gif:
-            draw_gif(reformatted_dict, event_id, game_name)
 
-        passing_list = calculate_passing(reformatted_dict, last_possessors)
-        passing_list_list.append({"passing":passing_list, "event_data": reformatted_dict})  # Assuming this is for further usage
+        player_id_to_name_num = game.event.player_ids_dict
+        time_snapshots = reformat_dict(game)
+        last_possessors = determine_possessor(time_snapshots, SPEED_THRESHOLD, RADIUS_THRESHOLD)
+        if args.gif:
+            draw_gif(time_snapshots, event_id, game_name)
+
+        passing_list = calculate_passing(time_snapshots, last_possessors, game)
+        time_to_dict = {(d['Quarter'], d['GameClock']): d for d in time_snapshots}
+
+        passing_list_list.append(passing_list)  # Assuming this is for further usage
 
     # Save the passing list as JSON
     if args.save_json:
@@ -254,7 +259,9 @@ def main():
             event_id = event_ids[0]
         else:
             event_id = ""
-        with open(f"{game_name}{event_id}.json", 'w') as json_file:
+        compressed_file_name = f"{game_name}{event_id}.json.gz"
+        print("Saving", compressed_file_name, "To open, use `gzip.open(FILE_NAME, 'wt', encoding='UTF-8')`")
+        with gzip.open(compressed_file_name, 'wt', encoding='UTF-8') as json_file:
             json.dump(passing_list_list, json_file)
 
 

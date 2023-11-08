@@ -1,0 +1,81 @@
+[
+  [],
+  [
+    {
+      "pass_from": null,
+      "pass_to": "Tim Duncan",
+      "snapshots": [
+        {
+          "Ball": {
+            "x": 16.5378,
+            "y": 42.80776,
+            "radius": 4.66466
+          },
+          "HomePlayers": {
+            "Kris Humphries": {
+              "id": 2743,
+              "x": 5.60485,
+              "y": 17.96686
+            },
+            "Marcin Gortat": {
+              "id": 101162,
+              "x": 13.60633,
+              "y": 38.2541
+            },
+            "John Wall": {
+              "id": 202322,
+              "x": 23.58377,
+              "y": 23.95698
+            },
+            "Bradley Beal": {
+              "id": 203078,
+              "x": 22.67666,
+              "y": 38.5434
+            },
+            "Otto Porter": {
+              "id": 203490,
+              "x": 13.34061,
+              "y": 15.86374
+            }
+          },
+          "GuestPlayers": {
+            "Tim Duncan": {
+              "id": 1495,
+              "x": 15.50516,
+              "y": 41.85326
+            },
+            "Tony Parker": {
+              "id": 2225,
+              "x": 25.67784,
+              "y": 15.04212
+            },
+            "LaMarcus Aldridge": {
+              "id": 200746,
+              "x": 3.93772,
+              "y": 8.54047
+            },
+            "Danny Green": {
+              "id": 201980,
+              "x": 29.06418,
+              "y": 38.70623
+            },
+            "Kawhi Leonard": {
+              "id": 202695,
+              "x": 17.93232,
+              "y": 3.04405
+            }
+          },
+          "GameClock": 686.52,
+          "Quarter": 1,
+          "ShotClock": 9.73
+        }
+      ],
+      "GameClock": 686.52,
+      "Quarter": 1,
+      "ShotClock": 9.73,
+      "distance": 48.32360404466756,
+      "average_speed": -0.7123594997341216,
+      "pass_duration": 6.659999999999968
+    }
+  ]
+]
