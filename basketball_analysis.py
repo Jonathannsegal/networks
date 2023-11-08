@@ -260,9 +260,10 @@ def main():
         else:
             event_id = ""
         compressed_file_name = f"{game_name}{event_id}.json.gz"
-        print("Saving", compressed_file_name, "To open, use `gzip.open(FILE_NAME, 'wt', encoding='UTF-8')`")
+        print("Saving", compressed_file_name, "...\n To open later, use `gzip.open(FILE_NAME, 'wt', encoding='UTF-8')`")
         with gzip.open(compressed_file_name, 'wt', encoding='UTF-8') as json_file:
             json.dump(passing_list_list, json_file)
+        print("Saved")
 
 
 if __name__ == '__main__':
