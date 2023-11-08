@@ -125,7 +125,7 @@ RADIUS_THRESHOLD = 5
 from itertools import compress
 
 
-def draw_gif(time_snapshots, event, game_name):
+def draw_gif(time_snapshots, event, game_name, game):
     ball_data = list(compress(time_snapshots,
                               ('x' in entry["Ball"] and 'y' in entry["Ball"] and 'radius' in entry["Ball"] for entry in
                                time_snapshots)))
@@ -167,7 +167,7 @@ def draw_gif(time_snapshots, event, game_name):
                                   fargs=(x_positions, y_positions, sizes, last_possessors), repeat=False)
 
     plt.close(fig)
-    ani.save(f'{game_name}_{event}.gif', writer='imagemagick', fps=25, dpi=80)
+    ani.save(f'{game_name}_Event{event}.gif', writer='imagemagick', fps=25, dpi=80)
     progress_bar.close()
 
 
@@ -246,17 +246,17 @@ def main():
         time_snapshots = reformat_dict(game)
         last_possessors = determine_possessor(time_snapshots, SPEED_THRESHOLD, RADIUS_THRESHOLD)
         if args.gif:
-            draw_gif(time_snapshots, event_id, game_name)
+            draw_gif(time_snapshots, event_id, game_name, game)
 
         passing_list = calculate_passing(time_snapshots, last_possessors, game)
-        time_to_dict = {(d['Quarter'], d['GameClock']): d for d in time_snapshots}
+        # time_to_dict = {(d['Quarter'], d['GameClock']): d for d in time_snapshots}
 
         passing_list_list.append(passing_list)  # Assuming this is for further usage
 
     # Save the passing list as JSON
     if args.save_json:
         if len(event_ids) == 1:
-            event_id = event_ids[0]
+            event_id = "_Event{event_ids[0]}"
         else:
             event_id = ""
         compressed_file_name = f"{game_name}{event_id}.json.gz"
