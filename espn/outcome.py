@@ -23,8 +23,8 @@ def parse_play(play, away_team, home_team):
     # Technical fouls
     tech_foul_match = re.match(r'(Def 3 sec|Off 3 sec|Tech) tech foul by (.*)', play)
     if tech_foul_match:
-        foul_type, _ = tech_foul_match.groups()
-        return f"{team} {foul_type} technical foul"
+        foul_type, player = tech_foul_match.groups()
+        return f"{team} {player} {foul_type} technical foul"
 
     # Timeouts
     timeout_match = re.match(r'(.*?)(?: (full|short|Official))? timeout', play)
@@ -38,52 +38,52 @@ def parse_play(play, away_team, home_team):
     # Field Goal Made
     fg_made_match = re.match(r'(.*) makes (\d)-pt (.*) from (\d+) ft', play)
     if fg_made_match:
-        _, points, shot_type, distance = fg_made_match.groups()
-        return f"{team} makes {points}-pt {shot_type} from {distance} ft"
+        player, points, shot_type, distance = fg_made_match.groups()
+        return f"{team} {player} makes {points}-pt {shot_type} from {distance} ft"
     
     # Field Goals with assists
     fg_assist_match = re.match(r'(.*) (makes) (\d)-pt (.*) from (\d+) ft \(assist by (.*)\)', play)
     if fg_assist_match:
-        _, action, points, shot_type, distance, assist_by = fg_assist_match.groups()
-        return f"{team} {action} {points}-pt {shot_type} from {distance} ft, assisted by {assist_by}"
+        player, action, points, shot_type, distance, assist_by = fg_assist_match.groups()
+        return f"{team} {player} {action} {points}-pt {shot_type} from {distance} ft, assisted by {assist_by}"
 
     # Field Goals with "at rim"
     fg_rim_match = re.match(r'(.*) (makes|misses) (\d)-pt (.*) at rim', play)
     if fg_rim_match:
-        _, action, points, shot_type = fg_rim_match.groups()
-        return f"{team} {action} {points}-pt {shot_type} at rim"
+        player, action, points, shot_type = fg_rim_match.groups()
+        return f"{team} {player} {action} {points}-pt {shot_type} at rim"
 
     # Field Goal Missed
     fg_missed_match = re.match(r'(.*) misses (\d)-pt (.*) from (\d+) ft', play)
     if fg_missed_match:
-        _, shot_type, distance = fg_missed_match.groups()[:3]
-        return f"{team} misses {shot_type} from {distance} ft"
+        player, shot_type, distance = fg_missed_match.groups()[:3]
+        return f"{team} {player} misses {shot_type} from {distance} ft"
     
     # Field Goals
     fg_match = re.match(r'(.*) (misses|makes) (\d)-pt (.*?)(?: \(assist by (.*?)\))?', play)
     if fg_match:
-        _, action, shot_type, shot_desc, assist_by = fg_match.groups()
+        player, action, shot_type, shot_desc, assist_by = fg_match.groups()
         assist_str = f" (assist by {assist_by})" if assist_by else ""
-        return f"{team} {action} {shot_type}-pt {shot_desc}{assist_str}"
+        return f"{team} {player} {action} {shot_type}-pt {shot_desc}{assist_str}"
 
     # Rebounds
     rebound_match = re.match(r'(Offensive|Defensive) rebound by (.*)', play)
     if rebound_match:
-        rebound_type, _ = rebound_match.groups()
-        return f"{team} {rebound_type.lower()} rebound"
+        rebound_type, player = rebound_match.groups()
+        return f"{team} {player} {rebound_type.lower()} rebound"
 
     # Turnovers
     turnover_match = re.match(r'Turnover by (.*) \((.*)\)', play)
     if turnover_match:
-        _, turnover_type = turnover_match.groups()
-        return f"{team} turnover ({turnover_type})"
+        player, turnover_type = turnover_match.groups()
+        return f"{team} {player} turnover ({turnover_type})"
 
     # Fouls
     foul_match = re.match(r'(.+?) foul( type \d+)? by (.*) (?:\(drawn by (.*)\))?', play)
     if foul_match:
-        foul_type, _, _, drawn_by = foul_match.groups()
+        foul_type, player, _, drawn_by = foul_match.groups()
         drawn_by_str = f" (drawn by {drawn_by})" if drawn_by else ""
-        return f"{team} {foul_type} foul {drawn_by_str}"
+        return f"{team} {player} {foul_type} foul {drawn_by_str}"
     
     specific_foul_match = re.match(r'Offensive foul by', play)
     if specific_foul_match:
@@ -98,12 +98,12 @@ def parse_play(play, away_team, home_team):
     # General Free Throws (including technical and flagrant)
     ft_general_match = re.match(r'(.*) (makes|misses)( technical| flagrant| clear path)? free throw(?: (\d+)(?: of (\d+))?)?', play)
     if ft_general_match:
-        _, action, _, current, total = ft_general_match.groups()
+        player, action, _, current, total = ft_general_match.groups()
         points = '1' if action == 'makes' else '0'
         # Handling the case where 'current' or 'total' might be None
         current = current or '1'  # Assuming '1' if not specified
         total = total or current   # Total is same as current if not specified
-        return f"{team} {action} free throw {current} of {total}, {points} points"
+        return f"{team} {player} {action} free throw {current} of {total}, {points} points"
 
     # Other specific plays not covered
     return f"Unidentified Play: {play}"
