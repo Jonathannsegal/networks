@@ -113,18 +113,16 @@ def assign_weight(outcome):
         return 0
 
     # Assigning different weights to different play types
-    if '3-pt' in outcome:
+    if '3' in outcome:
         return 3
-    elif '2-pt' in outcome or 'free throw' in outcome:
+    elif '2' in outcome or 'free throw' in outcome:
         return 2
-    elif 'offensive rebound' in outcome:
+    elif 'offensive rebound' in outcome or 'assist' in outcome or 'steal' in outcome:
         return 1  # Positive weight for offensive rebounds
-    elif 'defensive rebound' in outcome:
+    elif 'defensive rebound' in outcome or 'block' in outcome:
         return -1  # Negative weight for defensive rebounds
     elif 'turnover' in outcome or 'foul' in outcome:
         return -2
-    elif 'assist' in outcome or 'steal' in outcome or 'block' in outcome:
-        return 1
     else:
         return 0
 
