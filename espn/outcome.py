@@ -38,50 +38,50 @@ def parse_play(play, away_team, home_team):
     # Field Goal Made
     fg_made_match = re.match(r'(.*) makes (\d)-pt (.*) from (\d+) ft', play)
     if fg_made_match:
-        player, points, shot_type, distance = fg_made_match.groups()
+        _, points, shot_type, distance = fg_made_match.groups()
         return f"{team} makes {points}-pt {shot_type} from {distance} ft"
     
     # Field Goals with assists
     fg_assist_match = re.match(r'(.*) (makes) (\d)-pt (.*) from (\d+) ft \(assist by (.*)\)', play)
     if fg_assist_match:
-        player, action, points, shot_type, distance, assist_by = fg_assist_match.groups()
+        _, action, points, shot_type, distance, assist_by = fg_assist_match.groups()
         return f"{team} {action} {points}-pt {shot_type} from {distance} ft, assisted by {assist_by}"
 
     # Field Goals with "at rim"
     fg_rim_match = re.match(r'(.*) (makes|misses) (\d)-pt (.*) at rim', play)
     if fg_rim_match:
-        player, action, points, shot_type = fg_rim_match.groups()
+        _, action, points, shot_type = fg_rim_match.groups()
         return f"{team} {action} {points}-pt {shot_type} at rim"
 
     # Field Goal Missed
     fg_missed_match = re.match(r'(.*) misses (\d)-pt (.*) from (\d+) ft', play)
     if fg_missed_match:
-        player, shot_type, distance = fg_missed_match.groups()[:3]
+        _, shot_type, distance = fg_missed_match.groups()[:3]
         return f"{team} misses {shot_type} from {distance} ft"
     
     # Field Goals
     fg_match = re.match(r'(.*) (misses|makes) (\d)-pt (.*?)(?: \(assist by (.*?)\))?', play)
     if fg_match:
-        player, action, shot_type, shot_desc, assist_by = fg_match.groups()
+        _, action, shot_type, shot_desc, assist_by = fg_match.groups()
         assist_str = f" (assist by {assist_by})" if assist_by else ""
         return f"{team} {action} {shot_type}-pt {shot_desc}{assist_str}"
 
     # Rebounds
     rebound_match = re.match(r'(Offensive|Defensive) rebound by (.*)', play)
     if rebound_match:
-        rebound_type, player = rebound_match.groups()
+        rebound_type, _ = rebound_match.groups()
         return f"{team} {rebound_type.lower()} rebound"
 
     # Turnovers
     turnover_match = re.match(r'Turnover by (.*) \((.*)\)', play)
     if turnover_match:
-        player, turnover_type = turnover_match.groups()
+        _, turnover_type = turnover_match.groups()
         return f"{team} turnover ({turnover_type})"
 
     # Fouls
     foul_match = re.match(r'(.+?) foul( type \d+)? by (.*) (?:\(drawn by (.*)\))?', play)
     if foul_match:
-        foul_type, _, player, drawn_by = foul_match.groups()
+        foul_type, _, _, drawn_by = foul_match.groups()
         drawn_by_str = f" (drawn by {drawn_by})" if drawn_by else ""
         return f"{team} {foul_type} foul {drawn_by_str}"
     
@@ -98,7 +98,7 @@ def parse_play(play, away_team, home_team):
     # General Free Throws (including technical and flagrant)
     ft_general_match = re.match(r'(.*) (makes|misses)( technical| flagrant| clear path)? free throw(?: (\d+)(?: of (\d+))?)?', play)
     if ft_general_match:
-        player, action, _, current, total = ft_general_match.groups()
+        _, action, _, current, total = ft_general_match.groups()
         points = '1' if action == 'makes' else '0'
         # Handling the case where 'current' or 'total' might be None
         current = current or '1'  # Assuming '1' if not specified
@@ -107,6 +107,26 @@ def parse_play(play, away_team, home_team):
 
     # Other specific plays not covered
     return f"Unidentified Play: {play}"
+
+def assign_weight(outcome):
+    if outcome is None:
+        return 0
+
+    # Assigning different weights to different play types
+    if 'makes 3-pt' in outcome:
+        return 3
+    elif 'makes 2-pt' in outcome or 'free throw' in outcome:
+        return 2
+    elif 'offensive rebound' in outcome:
+        return 1  # Positive weight for offensive rebounds
+    elif 'defensive rebound' in outcome:
+        return -1  # Negative weight for defensive rebounds
+    elif 'turnover' in outcome or 'foul' in outcome:
+        return -2
+    elif 'assist' in outcome or 'steal' in outcome or 'block' in outcome:
+        return 1
+    else:
+        return 0
 
 def process_file(file_path, output_folder):
     nba_data = pd.read_csv(file_path)
@@ -123,6 +143,9 @@ def process_file(file_path, output_folder):
 
     # Exclude lines marked as 'Exclude Line'
     nba_relevant_data = nba_relevant_data[nba_relevant_data['Outcome'] != 'Exclude Line']
+
+    # Add weights column
+    nba_relevant_data['Weight'] = nba_relevant_data['Outcome'].apply(assign_weight)
 
     file_name = os.path.basename(file_path)
     output_file_path = os.path.join(output_folder, file_name)
