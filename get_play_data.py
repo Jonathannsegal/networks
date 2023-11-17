@@ -24,7 +24,7 @@ def reformat_date_team(file_name):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate play data from existing passing data.')
-    parser.add_argument('--file', type=str, default="01.22.2016.LAC.at.NYK",
+    parser.add_argument('--game_name', type=str, default="01.22.2016.LAC.at.NYK",
                         help='File name without sffix of the game JSON data. Do not put in path, just the file name')
     parser.add_argument('--output_all_folder', type=str, default="./data/plays_all/",
                         help='Folder to output all play data')
