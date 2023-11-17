@@ -1,12 +1,12 @@
 import argparse
 import gzip
-import ujson as json
 import os
 import pathlib
 import subprocess
 from collections import defaultdict
 
 import pandas as pd
+import ujson as json
 from tqdm import tqdm
 
 original_data_folder = "./data/2016.NBA.Raw.SportVU.Game.Logs/"
@@ -32,12 +32,12 @@ if __name__ == '__main__':
                         help='Folder to output filtered play data')
     args = parser.parse_args()
 
-    file_name = args.file
+    file_name = args.game_name
     compressed_path = f"{original_data_folder}{file_name}.7z"
     os.makedirs(os.path.dirname(output_folder), exist_ok=True)
 
     if not os.path.exists(os.path.join(output_folder, file_name + '.json.gz')):
-        print("Parsing Data")
+        print("Parsing Data from", os.path.join(output_folder, file_name + '.json.gz'))
         subprocess.run(["python", "get_passing_data.py", "--path", compressed_path, "--output_dir",
                         output_folder])
 
@@ -97,3 +97,5 @@ if __name__ == '__main__':
     print("Saving results")
     json.dump(plays, open(os.path.join(args.output_all_folder, file_name + ".json"), "w+"))
     json.dump(filtered_plays, open(os.path.join(args.output_filtered_folder, file_name + ".json"), "w+"))
+    print("Saved to ", os.path.join(args.output_all_folder, file_name + ".json"))
+    print("Saved to ", os.path.join(args.output_filtered_folder, file_name + ".json"))
