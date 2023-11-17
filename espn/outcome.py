@@ -3,6 +3,9 @@ import os
 import glob
 import re
 
+from tqdm import tqdm
+
+
 def parse_play(play, away_team, home_team):
     if pd.isna(play) or play.strip() == '':
         return None
@@ -148,13 +151,16 @@ def process_file(file_path, output_folder):
     nba_relevant_data['Weight'] = nba_relevant_data['Outcome'].apply(assign_weight)
 
     file_name = os.path.basename(file_path)
-    output_file_path = os.path.join(output_folder, file_name)
-    nba_relevant_data.to_csv(output_file_path, index=False)
+    output_file_path = os.path.join(output_folder, file_name + '.gz')
+    nba_relevant_data.to_csv(output_file_path, index=False, compression='gzip')
+
 
 data_folder = 'data'
 outcomes_folder = 'outcomes'
-if not os.path.exists(outcomes_folder):
-    os.makedirs(outcomes_folder)
 
-for file_path in glob.glob(os.path.join(data_folder, '*.csv')):
-    process_file(file_path, outcomes_folder)
+
+if __name__ == '__main__':
+    if not os.path.exists(outcomes_folder):
+        os.makedirs(outcomes_folder)
+    for file_path in tqdm(glob.glob(os.path.join(data_folder, '*.csv'))):
+        process_file(file_path, outcomes_folder)
