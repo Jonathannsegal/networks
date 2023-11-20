@@ -1,6 +1,6 @@
 import argparse
 
-from BasketBallData.Game import Game
+from Game import Game
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process arguments about an NBA game.')

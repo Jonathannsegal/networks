@@ -11,10 +11,10 @@ import pandas as pd
 from py7zr import SevenZipFile
 from tqdm.auto import tqdm
 
-from BasketBallData.Constant import *
-from BasketBallData.Event import Event
-from BasketBallData.Game import Game
-from BasketBallData.Team import Team
+from Constant import *
+from Event import Event
+from Game import Game
+from Team import Team
 
 
 def str2bool(v):
