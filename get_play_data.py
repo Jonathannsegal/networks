@@ -22,6 +22,20 @@ def reformat_date_team(file_name):
     return f"{date}0{team}"
 
 
+def merge_pass(d1, d2):
+    for key in d1:
+        # d2 Overwrite:
+        if key in ["pass_to"]:
+            d1[key] = d2[key]
+        # d1 Overwrite:
+        elif key in ['GameClock', 'ShotClock', 'Quarter', 'pass_from']:
+            pass
+        elif key in ['pass_duration', 'distance', 'snapshots']:
+            d1[key] = d1[key] + d2[key]
+        else:
+            raise Exception(f"Expected: {key}")
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate play data from existing passing data.')
     parser.add_argument('--game_name', type=str, default="01.22.2016.LAC.at.NYK",
@@ -89,6 +103,30 @@ if __name__ == '__main__':
                 final_result[(quarter_id, play_id)]['Passes'].append(
                     passing_quarter_secleft_to_event.pop(current_pass_key))
                 current_pass_key = list(passing_quarter_secleft_to_event.keys())[0]
+            if (quarter_id, play_id) in final_result and final_result[(quarter_id, play_id)]['Passes']:
+                new_passes = []
+                home_players = set(
+                    [*final_result[(quarter_id, play_id)]['Passes'][0]['snapshots'][0]['HomePlayers'].keys()])
+                away_players = set(
+                    [*final_result[(quarter_id, play_id)]['Passes'][0]['snapshots'][0]['GuestPlayers'].keys()])
+                if ([pas['pass_to'] in home_players for pas in
+                    final_result[(quarter_id, play_id)]['Passes'] if pas['pass_to']] + [final_result[(quarter_id, play_id)]['Passes'][0]['pass_from'] in home_players]).count(True) >= len(
+                    final_result[(quarter_id, play_id)]['Passes']) // 2:
+                    possession_players = home_players
+                else:
+                    possession_players = away_players
+                for pas in final_result[(quarter_id, play_id)]['Passes']:
+                    if not new_passes and pas['pass_from'] in possession_players:
+                        new_passes.append(pas)
+                    elif new_passes and new_passes[-1]['pass_to'] not in possession_players:
+                        merge_pass(new_passes[-1], pas)
+                    else:
+                        new_passes.append(pas)
+                if new_passes[-1]['pass_to'] not in possession_players:
+                    new_passes.pop(len(new_passes) - 1)
+                if new_passes:
+                    final_result[(quarter_id, play_id)]['CombinedPasses'] = new_passes
+
             play_id += 1
 
     plays = [*final_result.values()]
