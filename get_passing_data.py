@@ -244,6 +244,7 @@ def main():
     if input_event_id == -1:
         event_ids = [*range(total_events)]
     visited_events = set()
+    time_snapshots = []
     for event_id in tqdm(event_ids, desc="Handling events"):
         game = Game(path_to_json=path, event_index=event_id)
         hash_value = read_json(game)
@@ -252,15 +253,16 @@ def main():
         visited_events.add(hash_value)
 
         player_id_to_name_num = game.event.player_ids_dict
-        time_snapshots = reformat_dict(game)
-        last_possessors = determine_possessor(time_snapshots, SPEED_THRESHOLD, RADIUS_THRESHOLD)
-        if args.gif:
-            draw_gif(time_snapshots, event_id, game_name, game)
+        time_snapshots.extend(reformat_dict(game))
 
-        passing_list = calculate_passing(time_snapshots, last_possessors, game)
-        # time_to_dict = {(d['Quarter'], d['GameClock']): d for d in time_snapshots}
+    last_possessors = determine_possessor(time_snapshots, SPEED_THRESHOLD, RADIUS_THRESHOLD)
+    if args.gif:
+        draw_gif(time_snapshots, event_ids, game_name, game)
 
-        passing_list_list.append(passing_list)  # Assuming this is for further usage
+    passing_list = calculate_passing(time_snapshots, last_possessors, game)
+    # time_to_dict = {(d['Quarter'], d['GameClock']): d for d in time_snapshots}
+
+    passing_list_list.append(passing_list)  # Assuming this is for further usage
 
     # Save the passing list as JSON
     if args.save_json:

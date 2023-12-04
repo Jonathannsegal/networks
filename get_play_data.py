@@ -36,13 +36,14 @@ if __name__ == '__main__':
     compressed_path = f"{original_data_folder}{file_name}.7z"
     os.makedirs(os.path.dirname(output_folder), exist_ok=True)
 
-    if not os.path.exists(os.path.join(output_folder, file_name + '.json.gz')):
-        print("Parsing Passing Data from", os.path.join(output_folder, file_name + '.json.gz'))
+    pass_path = os.path.join(output_folder, file_name + '.json.gz')
+    if not os.path.exists(pass_path):
+        print("Parsing Passing Data from", pass_path)
         subprocess.run(["python", "get_passing_data.py", "--path", compressed_path, "--output_dir",
                         output_folder])
 
-    with gzip.open(os.path.join(output_folder, file_name + '.json.gz'), 'rt', encoding='UTF-8') as file:
-        print("Loading from parsed passing data:", os.path.join(output_folder, file_name + '.json.gz'))
+    with gzip.open(pass_path, 'rt', encoding='UTF-8') as file:
+        print("Loading from parsed passing data:", pass_path)
         passing = json.load(file)
     print("Reading espn data from", espn_csv_path)
     espn_data = pd.read_csv(espn_csv_path, compression='gzip')
