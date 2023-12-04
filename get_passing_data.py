@@ -206,7 +206,6 @@ def calculate_passing(time_snapshots, last_possessors, game):
                 total_speed = sum([get_speed(traj_i["Ball"], traj_j["Ball"])
                                    for traj_i, traj_j in zip(current_pass["snapshots"][:-1],
                                                              current_pass["snapshots"][1:])])
-                current_pass["average_speed"] = total_speed / len(current_pass["snapshots"]) - 1
                 # Calculate pass duration
                 start_time = time_snapshots[idx - len(current_pass["snapshots"])]["GameClock"]
                 end_time = time_snapshots[idx - 1]["GameClock"]
