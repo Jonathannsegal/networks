@@ -96,7 +96,8 @@ def determine_possessor(data, speed_threshold, radius_threshold):
         ball_now = data[idx]["Ball"]
 
         speed = get_speed(ball_prev, ball_now)
-        if speed < speed_threshold and ball_now["radius"] < radius_threshold and bool(data[idx]["HomePlayers"]) and bool(data[idx]["GuestPlayers"]):
+        if speed < speed_threshold and ball_now["radius"] < radius_threshold and bool(
+                data[idx]["HomePlayers"]) and bool(data[idx]["GuestPlayers"]):
             home_player, d1 = get_nearest_position(ball_now, data[idx]["HomePlayers"].values())
             guest_player, d2 = get_nearest_position(ball_now, data[idx]["GuestPlayers"].values())
             possessor = home_player if d1 < d2 else guest_player
@@ -273,10 +274,11 @@ def main():
         compressed_file_name = f"{game_name}{event_id}.json.gz"
         compressed_file_name = os.path.join(args.output_dir, compressed_file_name)
         pathlib.Path(args.output_dir).mkdir(exist_ok=True)
-        print("Saving", compressed_file_name, "...\n To open later, use `gzip.open(FILE_NAME, 'wt', encoding='UTF-8')`")
+        print("Saving", compressed_file_name,
+              "... With compression, this could take a while.\n To open later, use `gzip.open(FILE_NAME, 'wt', encoding='UTF-8')`")
         with gzip.open(compressed_file_name, 'wt', encoding='UTF-8') as json_file:
             json.dump(passing_list_list, json_file)
-        print("Saved")
+        print(compressed_file_name, "Saved")
 
 
 if __name__ == '__main__':
