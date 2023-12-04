@@ -96,7 +96,7 @@ def determine_possessor(data, speed_threshold, radius_threshold):
         ball_now = data[idx]["Ball"]
 
         speed = get_speed(ball_prev, ball_now)
-        if speed < speed_threshold and ball_now["radius"] < radius_threshold:
+        if speed < speed_threshold and ball_now["radius"] < radius_threshold and bool(data[idx]["HomePlayers"]) and bool(data[idx]["GuestPlayers"]):
             home_player, d1 = get_nearest_position(ball_now, data[idx]["HomePlayers"].values())
             guest_player, d2 = get_nearest_position(ball_now, data[idx]["GuestPlayers"].values())
             possessor = home_player if d1 < d2 else guest_player
