@@ -5,3 +5,4 @@ __pycache__/*
 .DS_Store
 data/*
 !data/2016.NBA.Raw.SportVU.Game.Logs/*.7z
+data/possessions_for_jonathan.json

@@ -1,9 +1,13 @@
 import subprocess
 import multiprocessing as mp
 from glob import glob
+import random
 import os
 
+random.seed(0)
 filenames = glob("data/2016.NBA.Raw.SportVU.Game.Logs/*.7z")
+# Randomly choose 30 files from the list
+filenames = random.sample(filenames, 30)
 
 def run_command(game_name):
     subprocess.run(["python", "get_play_data.py", "--game_name", game_name])
