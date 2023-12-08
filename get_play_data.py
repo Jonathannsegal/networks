@@ -26,7 +26,8 @@ def merge_pass(d1, d2):
     for key in d1:
         # d2 Overwrite:
         if key in ["pass_to"]:
-            d1[key] = d2[key]
+            print("Merging {} -> {} -> {} ->{}".format(d1["pass_from"], d1[key], d2["pass_from"], d2[key]))
+            d1[key] = d2[key][:]
         # d1 Overwrite:
         elif key in ['GameClock', 'ShotClock', 'Quarter', 'pass_from']:
             pass
@@ -34,6 +35,52 @@ def merge_pass(d1, d2):
             d1[key] = d1[key] + d2[key]
         else:
             raise Exception(f"Expected: {key}")
+
+
+def assert_passes(merged_passes, possession_players):
+    for i in range(len(merged_passes)):
+        pass_event = merged_passes[i]
+        # Assert that pass_from and pass_to are in possession_players
+        assert pass_event[
+                   'pass_from'] in possession_players, f"pass_from {pass_event['pass_from']} not in possession_players"
+        assert pass_event['pass_to'] in possession_players, f"pass_to {pass_event['pass_to']} not in possession_players"
+
+        # For consecutive passes, assert pass_to of the first is pass_from of the next
+        if i < len(merged_passes) - 1:
+            next_pass_event = merged_passes[i + 1]
+            assert pass_event['pass_to'] == next_pass_event['pass_from'], f"Mismatch in pass sequence at index {i}"
+
+    return "All assertions passed"
+
+
+def merge_passes(passes, possession_players):
+    merged_passes = []
+    temp_pass = None
+
+    for pass_event in passes:
+        if (not merged_passes or pass_event['pass_from'] == merged_passes[-1]['pass_to']) and pass_event[
+            'pass_from'] in possession_players and pass_event['pass_to'] in possession_players:
+            # If both players are in possession_players, add the pass as is
+            merged_passes.append(pass_event)
+        else:
+            if temp_pass is None:
+                # Start a new temp_pass if it's not already started
+                temp_pass = pass_event.copy()
+            else:
+                # Add the distance to the temp_pass and update ShotClock and GameClock
+                merge_pass(temp_pass, pass_event)
+
+                # If the pass_to player is in possession_players, finalize the temp_pass
+                if pass_event['pass_to'] in possession_players:
+                    if not( not merged_passes or temp_pass['pass_from'] == merged_passes[-1]['pass_to']):
+                        print(f"Merged pass failed")
+                        return None
+                    merged_passes.append(temp_pass)
+                    temp_pass = None
+    if merged_passes and merged_passes[0]['pass_from'] not in possession_players:
+        merged_passes = merged_passes[1:]
+    assert_passes(merged_passes, possession_players)
+    return merged_passes
 
 
 if __name__ == '__main__':
@@ -110,33 +157,29 @@ if __name__ == '__main__':
                 away_players = set(
                     [*final_result[(quarter_id, play_id)]['Passes'][0]['snapshots'][0]['GuestPlayers'].keys()])
                 if ([pas['pass_to'] in home_players for pas in
-                    final_result[(quarter_id, play_id)]['Passes'] if pas['pass_to']] + [final_result[(quarter_id, play_id)]['Passes'][0]['pass_from'] in home_players]).count(True) >= len(
+                     final_result[(quarter_id, play_id)]['Passes'] if pas['pass_to']] + [
+                        final_result[(quarter_id, play_id)]['Passes'][0]['pass_from'] in home_players]).count(
+                    True) >= len(
                     final_result[(quarter_id, play_id)]['Passes']) // 2:
                     possession_players = home_players
                 else:
                     possession_players = away_players
-                for pas in final_result[(quarter_id, play_id)]['Passes']:
-                    if not new_passes and pas['pass_from'] in possession_players:
-                        new_passes.append(pas)
-                    elif new_passes and new_passes[-1]['pass_to'] not in possession_players:
-                        merge_pass(new_passes[-1], pas)
-                    else:
-                        new_passes.append(pas)
-                if new_passes[-1]['pass_to'] not in possession_players:
-                    new_passes.pop(len(new_passes) - 1)
-                if new_passes:
-                    final_result[(quarter_id, play_id)]['CombinedPasses'] = new_passes
-
+                final_result[(quarter_id, play_id)]['CombinedPasses'] = (
+                    merge_passes(final_result[(quarter_id, play_id)]['Passes'], possession_players))
+                if final_result[(quarter_id, play_id)]['CombinedPasses'] is None:
+                    del final_result[(quarter_id, play_id)]['CombinedPasses']
             play_id += 1
 
     plays = [*final_result.values()]
     filtered_plays = [play for idx, play in final_result.items() if
                       play['Outcome'].split(" ")[1] in (
-                              str(play["Passes"][-1]['pass_from']) + str(play["Passes"][-1]['pass_to']))]
+                              str(play["Passes"][-1]['pass_from']) + str(play["Passes"][-1]['pass_to'])) and "CombinedPasses" in play]
     pathlib.Path(args.output_all_folder).mkdir(exist_ok=True)
     pathlib.Path(args.output_filtered_folder).mkdir(exist_ok=True)
     print("Saving results")
+    print("all: len=", len(plays))
     json.dump(plays, open(os.path.join(args.output_all_folder, file_name + ".json"), "w+"))
+    print("filtered: len=", len(filtered_plays))
     json.dump(filtered_plays, open(os.path.join(args.output_filtered_folder, file_name + ".json"), "w+"))
     print("Saved to ", os.path.join(args.output_all_folder, file_name + ".json"))
     print("Saved to ", os.path.join(args.output_filtered_folder, file_name + ".json"))
