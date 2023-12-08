@@ -72,8 +72,8 @@ def merge_passes(passes, possession_players):
 
                 # If the pass_to player is in possession_players, finalize the temp_pass
                 if pass_event['pass_to'] in possession_players:
-                    if not( not merged_passes or temp_pass['pass_from'] == merged_passes[-1]['pass_to']):
-                        print(f"Merged pass failed")
+                    if not (not merged_passes or temp_pass['pass_from'] == merged_passes[-1]['pass_to']):
+                        print(f"One merged pass is dropped")
                         return None
                     merged_passes.append(temp_pass)
                     temp_pass = None
@@ -173,7 +173,8 @@ if __name__ == '__main__':
     plays = [*final_result.values()]
     filtered_plays = [play for idx, play in final_result.items() if
                       play['Outcome'].split(" ")[1] in (
-                              str(play["Passes"][-1]['pass_from']) + str(play["Passes"][-1]['pass_to'])) and "CombinedPasses" in play]
+                              str(play["Passes"][-1]['pass_from']) + str(
+                          play["Passes"][-1]['pass_to'])) and "CombinedPasses" in play]
     pathlib.Path(args.output_all_folder).mkdir(exist_ok=True)
     pathlib.Path(args.output_filtered_folder).mkdir(exist_ok=True)
     print("Saving results")
