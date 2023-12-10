@@ -131,6 +131,8 @@ if __name__ == '__main__':
         while play_id < len(espn_secleft_to_event) - 1:
             sec_left = espn_seclefts[play_id]
             next_sec_left = espn_seclefts[play_id + 1]
+            if not passing_quarter_secleft_to_event:
+                break
             current_pass_key = list(passing_quarter_secleft_to_event.keys())[0]
 
             while current_pass_key[0] == quarter_id and current_pass_key[1] >= espn_seclefts[play_id + 1]:
@@ -149,6 +151,8 @@ if __name__ == '__main__':
 
                 final_result[(quarter_id, play_id)]['Passes'].append(
                     passing_quarter_secleft_to_event.pop(current_pass_key))
+                if not passing_quarter_secleft_to_event:
+                    break
                 current_pass_key = list(passing_quarter_secleft_to_event.keys())[0]
             if (quarter_id, play_id) in final_result and final_result[(quarter_id, play_id)]['Passes']:
                 new_passes = []
