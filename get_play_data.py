@@ -124,7 +124,7 @@ if __name__ == '__main__':
 
     final_result = defaultdict(dict)
 
-    for quarter_id in tqdm(range(1, 4), desc="Processing Quarters"):
+    for quarter_id in tqdm(range(1, 5), desc="Processing Quarters"):
         play_id = 0
         espn_secleft_to_event = {k[1]: v for k, v in espn_quarter_secleft_to_event.items() if k[0] == quarter_id}
         espn_seclefts = list(espn_secleft_to_event.keys())
