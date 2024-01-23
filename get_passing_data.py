@@ -275,7 +275,7 @@ def main():
         pathlib.Path(args.output_dir).mkdir(exist_ok=True)
         print("Saving", compressed_file_name,
               "... With compression, this could take a while.\n To open later, use `gzip.open(FILE_NAME, 'wt', encoding='UTF-8')`")
-        with gzip.open(compressed_file_name, 'wt', encoding='UTF-8') as json_file:
+        with gzip.open(compressed_file_name, 'wt', compresslevel=1, encoding='UTF-8') as json_file:
             json.dump(passing_list_list, json_file)
         print(compressed_file_name, "Saved")
 
