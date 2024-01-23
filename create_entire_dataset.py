@@ -5,7 +5,10 @@ import random
 import os
 
 random.seed(0)
+
 filenames = glob("data/2016.NBA.Raw.SportVU.Game.Logs/*.7z")
+filenames = [filename for filename in filenames if not filename.startswith('2016')]
+
 # Randomly choose 30 files from the list
 filenames = random.sample(filenames, 30)
 
@@ -18,10 +21,7 @@ if __name__ == '__main__':
 
     for filename in filenames:
         file = filename.split('/')[-1]
-        if file.startswith('2016'):
-            continue
-        
-        game_name = file = file.replace('.7z', '')
+        game_name = file.replace('.7z', '')
 
         if os.path.exists(f'data/plays_all/{game_name}.json'):
             continue
