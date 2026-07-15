@@ -1,5 +1,7 @@
 # NBA Player Movements
 
+> **Status:** Research/data exploration repository. This is a fork-derived analysis project and is not a hosted web application.
+
 This is a script for visualization of NBA games from raw SportVU logs.
 
 If you admire both Spurs' and Warriors' ball movement, Brad Stevens' playbook, or just miss KD in OKC you'll find this entertaining.
@@ -16,7 +18,8 @@ If you admire both Spurs' and Warriors' ball movement, Brad Stevens' playbook, o
 1. Clone this repo:
 
   ```bash
-  $ git clone https://github.com/linouk23/NBA-Player-Movements
+  $ git clone https://github.com/Jonathannsegal/networks.git
+  $ cd networks
   ```
 
 2. Choose any NBA game from ```data/2016.NBA.Raw.SportVU.Game.Logs``` directory.
@@ -32,9 +35,12 @@ If you admire both Spurs' and Warriors' ball movement, Brad Stevens' playbook, o
     --path PATH    a path to json file to read the events from
 
   optional arguments:
-    --event EVENT  an index of the event to create the animation to
-                   (the indexing start with zero, if you index goes beyond out
-                   the total number of events (plays), it will show you the last
-                   one of the game)
+    --event EVENT  an index of the event to create the animation for
+                   (indexing starts at zero; values beyond the available events
+                   use the final event in the game)
     -h, --help     show the help message and exit
   ```
+
+## Attribution
+
+This repository retains the structure and example media of the original NBA Player Movements project while preserving Jonathan Segal's analysis work and datasets.
